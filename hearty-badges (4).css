@@ -1,0 +1,1357 @@
+
+(function(){
+  const STORAGE_KEY = 'heartyExerciseEngineV3';
+  const BLOCKED_CARDIO_TERMS = ['cardio','treadmill','running','run','jog','bike','cycling','spin','elliptical','rowing','rower','walk','walking','hiit'];
+
+  const APP = {
+    ladders: {
+      home: {
+        squat: [
+          { name: 'Supported sit-to-stand', sets: 2, repRange: [8, 12], cue: 'Use hands if needed. Stand tall and sit back with control.' },
+          { name: 'High box squat', sets: 3, repRange: [8, 12], cue: 'Touch the box gently. Do not crash into the seat.' },
+          { name: 'Lower box squat', sets: 3, repRange: [8, 12], cue: 'Same pattern, slightly deeper range.' },
+          { name: 'Bodyweight squat', sets: 3, repRange: [8, 12], cue: 'Only free squat once the box version is calm and repeatable.' },
+          { name: 'Tempo squat', sets: 3, repRange: [8, 10], cue: 'Slow down the lowering. Control first.' },
+          { name: 'Supported split squat', sets: 3, repRange: [6, 8], cue: 'Hold support. Small range is fine.' }
+        ],
+        push: [
+          { name: 'Wall press', sets: 2, repRange: [8, 12], cue: 'Keep body long and ribs quiet.' },
+          { name: 'High incline press', sets: 3, repRange: [8, 12], cue: 'Use a countertop or sturdy bench.' },
+          { name: 'Lower incline press', sets: 3, repRange: [8, 12], cue: 'Only lower the angle once high incline is repeatable.' },
+          { name: 'Counter push-up', sets: 3, repRange: [8, 10], cue: 'Strong body line. Stop before form drifts.' },
+          { name: 'Knee push-up', sets: 3, repRange: [6, 8], cue: 'Controlled lowering matters more than total reps.' }
+        ],
+        pull: [
+          { name: 'Supported band row', sets: 2, repRange: [10, 12], cue: 'Keep shoulders down and elbows close.' },
+          { name: 'Seated band row', sets: 3, repRange: [10, 12], cue: 'Sit tall. Pause for one count at the ribs.' },
+          { name: 'Stronger band row', sets: 3, repRange: [8, 12], cue: 'Use more tension, not more body sway.' },
+          { name: 'Single-arm supported row', sets: 3, repRange: [8, 10], cue: 'Brace with the free hand and keep the torso quiet.' }
+        ],
+        hinge: [
+          { name: 'Short bridge', sets: 2, repRange: [8, 12], cue: 'Only lift as high as the ribs stay down.' },
+          { name: 'Full bridge', sets: 3, repRange: [8, 12], cue: 'Squeeze at the top for one count.' },
+          { name: 'Long-lever bridge', sets: 3, repRange: [8, 10], cue: 'Heels slightly further away. Expect this to feel harder.' },
+          { name: 'March bridge', sets: 3, repRange: [6, 8], cue: 'Tiny steps. Keep hips level.' }
+        ],
+        step: [
+          { name: 'Weight shift', sets: 2, repRange: [8, 10], cue: 'Shift with control. Build confidence first.' },
+          { name: 'Supported step tap', sets: 3, repRange: [8, 10], cue: 'Touch the step lightly and return with control.' },
+          { name: 'Low supported step-up', sets: 3, repRange: [6, 8], cue: 'Use a very low step and keep one hand on support.' },
+          { name: 'Low step-up', sets: 3, repRange: [6, 8], cue: 'Stay with the low box until it feels calm.' }
+        ]
+      },
+      gym: {
+        squat: [
+          { name: 'Leg press', sets: 2, repRange: [8, 12], load: 40, step: 10, cue: 'Start light. Full lockout is not needed.' },
+          { name: 'Leg press', sets: 3, repRange: [8, 12], load: 50, step: 10, cue: 'Same machine. More confidence before more load.' },
+          { name: 'Leg press', sets: 3, repRange: [8, 10], load: 60, step: 10, cue: 'Controlled lowering. No ego reps.' },
+          { name: 'Leg press', sets: 3, repRange: [8, 10], load: 70, step: 10, cue: 'Only move here after repeated top-range success.' },
+          { name: 'Leg press', sets: 4, repRange: [8, 10], load: 80, step: 10, cue: 'Still machine-based and conservative.' }
+        ],
+        push: [
+          { name: 'Machine chest press', sets: 2, repRange: [8, 12], load: 15, step: 5, cue: 'Easy setup and controlled range.' },
+          { name: 'Machine chest press', sets: 3, repRange: [8, 12], load: 20, step: 5, cue: 'Build comfort before chasing load.' },
+          { name: 'Machine chest press', sets: 3, repRange: [8, 10], load: 25, step: 5, cue: 'Smooth reps. Stop a rep before grind.' },
+          { name: 'Machine chest press', sets: 3, repRange: [8, 10], load: 30, step: 5, cue: 'Only if the prior load repeated cleanly twice.' },
+          { name: 'Machine chest press', sets: 4, repRange: [8, 10], load: 35, step: 5, cue: 'Steady progress, never rushed.' }
+        ],
+        pull: [
+          { name: 'Seated row', sets: 2, repRange: [8, 12], load: 20, step: 5, cue: 'Chest tall. Pull to ribs.' },
+          { name: 'Seated row', sets: 3, repRange: [8, 12], load: 25, step: 5, cue: 'Pause at the finish.' },
+          { name: 'Seated row', sets: 3, repRange: [8, 10], load: 30, step: 5, cue: 'Smooth and controlled.' },
+          { name: 'Seated row', sets: 3, repRange: [8, 10], load: 35, step: 5, cue: 'Only after repeated top-range sessions.' },
+          { name: 'Seated row', sets: 4, repRange: [8, 10], load: 40, step: 5, cue: 'Stay machine-based and simple.' }
+        ],
+        hinge: [
+          { name: 'Seated leg curl', sets: 2, repRange: [10, 12], load: 15, step: 5, cue: 'Hamstrings first, not low back.' },
+          { name: 'Seated leg curl', sets: 3, repRange: [10, 12], load: 20, step: 5, cue: 'Full control back to the start.' },
+          { name: 'Seated leg curl', sets: 3, repRange: [8, 10], load: 25, step: 5, cue: 'Smooth and repeatable reps.' },
+          { name: 'Seated leg curl', sets: 3, repRange: [8, 10], load: 30, step: 5, cue: 'Progress only after two top-range wins.' }
+        ],
+        step: [
+          { name: 'Supported split stance hold', sets: 2, repRange: [20, 30], cue: 'Hold both supports if needed. Build tolerance first.' },
+          { name: 'Low supported step-up', sets: 3, repRange: [6, 8], cue: 'Use the rail. Step height stays low.' },
+          { name: 'Low step-up', sets: 3, repRange: [6, 8], cue: 'Only remove support once the supported version is calm.' }
+        ]
+      }
+    },
+    templates: {
+      home: [
+        ['squat', 'push', 'hinge'],
+        ['squat', 'pull', 'step'],
+        ['push', 'pull', 'hinge']
+      ],
+      gym: [
+        ['squat', 'push', 'hinge'],
+        ['squat', 'pull', 'step'],
+        ['push', 'pull', 'hinge']
+      ]
+    },
+    supportRules: {
+      '': { label: 'Support off', setDelta: 0, repTopDelta: 0, restDelta: 0, successEligible: true, route: 'Normal training day. Follow the plan below, keep the reps controlled, and use the fixed 90 second rest as your guide.' },
+      'Nausea': { label: 'Nausea support', setDelta: -1, repTopDelta: -2, restDelta: 15, successEligible: false, route: 'Gentler day. Keep pressure low, stay upright where possible, and choose the easiest clean version of each movement.' },
+      'Bloating': { label: 'Bloating support', setDelta: -1, repTopDelta: -1, restDelta: 15, successEligible: false, route: 'Lighter day. Avoid heavy bracing and keep any hinge work modest and comfortable.' },
+      'Fatigue': { label: 'Fatigue support', setDelta: -1, repTopDelta: -2, restDelta: 20, successEligible: false, route: 'Reduced day. Keep the work easy, take full rests, and let simple consistency be enough today.' },
+      'Low appetite': { label: 'Low appetite support', setDelta: -1, repTopDelta: -1, restDelta: 15, successEligible: false, route: 'Keep the session short and calm. Move well, avoid pushing, and keep the day manageable.' }
+    },
+    energyRules: {
+      low: { label: 'Low energy', repTopDelta: -1, restDelta: 10 },
+      normal: { label: 'Normal energy', repTopDelta: 0, restDelta: 0 },
+      strong: { label: 'Strong', repTopDelta: 0, restDelta: -5 }
+    }
+  };
+
+  function todayKey(){
+    return new Date().toISOString().slice(0,10);
+  }
+
+  function weekStart(date = new Date()){
+    const d = new Date(date);
+    const day = (d.getDay() + 6) % 7;
+    d.setHours(0,0,0,0);
+    d.setDate(d.getDate() - day);
+    return d.toISOString().slice(0,10);
+  }
+
+  function isoDiffDays(a, b){
+    const da = new Date(a + 'T00:00:00');
+    const db = new Date(b + 'T00:00:00');
+    return Math.round((db - da) / 86400000);
+  }
+
+  function createBaseTrack(mode){
+    const out = {};
+    Object.keys(APP.ladders[mode]).forEach(pattern => {
+      out[pattern] = {
+        levelIndex: 0,
+        baselineLoad: null,
+        currentLoad: null,
+        eligibleSessionCount: 0,
+        recentEligibleWins: [],
+        protectCount: 0,
+        stuckCount: 0,
+        lastProgressionDate: null,
+        lastOutcome: ''
+      };
+    });
+    return out;
+  }
+
+  function baseState(){
+    return {
+      mode: 'home',
+      energy: 'normal',
+      supportMode: '',
+      restSeconds: 90,
+      strengthScore: 0,
+      weekStart: weekStart(),
+      sessions: [],
+      minutesThisWeek: 0,
+      recentActivity: [],
+      customWorkouts: [],
+      customWorkoutDraft: {
+        type: 'quick',
+        mode: 'home',
+        title: '',
+        durationMin: 20,
+        note: '',
+        exercises: [
+          { name: '', sets: 3, reps: 10 },
+          { name: '', sets: 3, reps: 10 }
+        ]
+      },
+      firstSessionDate: '',
+      tracks: {
+        home: createBaseTrack('home'),
+        gym: createBaseTrack('gym')
+      },
+      currentWorkout: null,
+      modalWorkout: null,
+      modalSavedToday: false
+    };
+  }
+
+  let state = loadState();
+
+  function loadState(){
+    function normalizeTrack(trackObj){
+      return {
+        levelIndex: Number(trackObj?.levelIndex || 0),
+        baselineLoad: trackObj?.baselineLoad ?? null,
+        currentLoad: trackObj?.currentLoad ?? null,
+        eligibleSessionCount: Number(trackObj?.eligibleSessionCount ?? trackObj?.sessionCount ?? 0),
+        recentEligibleWins: Array.isArray(trackObj?.recentEligibleWins) ? trackObj.recentEligibleWins.slice(-6) : [],
+        protectCount: Number(trackObj?.protectCount || 0),
+        stuckCount: Number(trackObj?.stuckCount ?? trackObj?.failCount ?? 0),
+        lastProgressionDate: trackObj?.lastProgressionDate || null,
+        lastOutcome: trackObj?.lastOutcome || ''
+      };
+    }
+    try{
+      const raw = localStorage.getItem(STORAGE_KEY);
+      if(!raw) return baseState();
+      const parsed = JSON.parse(raw);
+      const merged = Object.assign(baseState(), parsed);
+      if(!merged.tracks || !merged.tracks.home || !merged.tracks.gym){
+        merged.tracks = baseState().tracks;
+      }
+      Object.keys(merged.tracks.home || {}).forEach(pattern => {
+        merged.tracks.home[pattern] = normalizeTrack(merged.tracks.home[pattern]);
+      });
+      Object.keys(merged.tracks.gym || {}).forEach(pattern => {
+        merged.tracks.gym[pattern] = normalizeTrack(merged.tracks.gym[pattern]);
+      });
+      if(merged.weekStart !== weekStart()){
+        merged.weekStart = weekStart();
+        merged.minutesThisWeek = 0;
+        merged.modalSavedToday = false;
+      }
+      merged.sessions = (merged.sessions || []).filter(d => isoDiffDays(d, todayKey()) <= 14);
+      merged.customWorkouts = merged.customWorkouts || [];
+      merged.customWorkoutDraft = merged.customWorkoutDraft || baseState().customWorkoutDraft;
+      merged.firstSessionDate = merged.firstSessionDate || merged.sessions[0] || todayKey();
+      merged.supportMode = '';
+      return merged;
+    }catch(err){
+      return baseState();
+    }
+  }
+
+  function saveState(){
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
+  }
+
+  function getWeekSessions(){
+    return state.sessions.filter(d => d >= state.weekStart).sort();
+  }
+
+  function canTrainToday(){
+    const sessions = getWeekSessions();
+    if(sessions.includes(todayKey())){
+      return { ok: false, reason: 'Already logged today' };
+    }
+    if(sessions.length >= 3){
+      return { ok: false, reason: 'Weekly strength complete' };
+    }
+    const last = sessions[sessions.length - 1];
+    if(last && isoDiffDays(last, todayKey()) === 1){
+      return { ok: false, reason: 'No consecutive strength days' };
+    }
+    return { ok: true, reason: 'Ready for session' };
+  }
+
+  function currentTemplate(){
+    const sessions = getWeekSessions().length;
+    return APP.templates[state.mode][sessions % APP.templates[state.mode].length];
+  }
+
+  function getPatternTrack(pattern){
+    return state.tracks[state.mode][pattern];
+  }
+
+  function getTrackForMode(pattern, mode){
+    return state.tracks[mode][pattern];
+  }
+
+  function getTrack(pattern){
+    return getPatternTrack(pattern);
+  }
+
+  function trackWinCount(track){
+    return (track.recentEligibleWins || []).filter(Boolean).length;
+  }
+
+  function canAdvance(track){
+    return track.eligibleSessionCount >= 6 && trackWinCount(track) >= 2;
+  }
+
+  function shouldOfferRegression(track){
+    return track.eligibleSessionCount >= 4 && trackWinCount(track) === 0;
+  }
+
+  function patternProgressPercent(track){
+    const exposureRatio = Math.min((track.eligibleSessionCount || 0) / 6, 1);
+    const winRatio = Math.min(trackWinCount(track) / 2, 1);
+    return Math.round(Math.min(exposureRatio, winRatio) * 100);
+  }
+
+  function patternProgressMessage(track){
+    if(track.lastOutcome === 'advance') return 'Strength level unlocked';
+    if(track.lastOutcome === 'protect') return 'Recovery-aware session completed';
+    if(track.lastOutcome === 'regress_offer') return 'This level may be a bit too demanding right now';
+    const wins = trackWinCount(track);
+    if((track.eligibleSessionCount || 0) < 6){
+      return `${6 - (track.eligibleSessionCount || 0)} more eligible sessions before progression opens`;
+    }
+    if(wins < 2){
+      const needed = 2 - wins;
+      return `${needed} more strong session${needed === 1 ? '' : 's'} needed to progress`;
+    }
+    return 'Strength maintained';
+  }
+
+  function defaultGymBaselineFor(pattern){
+    if(pattern === 'squat') return 30;
+    if(pattern === 'push') return 10;
+    if(pattern === 'pull') return 15;
+    if(pattern === 'hinge') return 15;
+    if(pattern === 'step') return 10;
+    return 10;
+  }
+
+  function nextGymLoad(currentLoad, pattern){
+    if(currentLoad == null) return null;
+    if(pattern === 'squat') return currentLoad + 10;
+    if(pattern === 'push') return currentLoad + 2.5;
+    if(pattern === 'pull') return currentLoad + 5;
+    if(pattern === 'hinge') return currentLoad + 5;
+    if(pattern === 'step') return currentLoad + 5;
+    return currentLoad + 5;
+  }
+
+  function regressGymLoad(currentLoad){
+    if(currentLoad == null) return null;
+    return Math.max(0, currentLoad - 5);
+  }
+
+  function regressTrack(track){
+    track.levelIndex = Math.max(0, (track.levelIndex || 0) - 1);
+    track.eligibleSessionCount = 0;
+    track.recentEligibleWins = [];
+    track.stuckCount = 0;
+    track.lastOutcome = 'regressed';
+    if(state.mode === 'gym' && track.currentLoad != null){
+      track.currentLoad = regressGymLoad(track.currentLoad);
+    }
+  }
+
+  function getStage(mode, pattern, index){
+    const ladder = APP.ladders[mode][pattern];
+    return ladder[Math.min(index, ladder.length - 1)];
+  }
+
+  function deriveExercise(mode, pattern){
+    const track = getTrackForMode(pattern, mode);
+    if(mode === 'gym' && track.baselineLoad == null){
+      track.baselineLoad = defaultGymBaselineFor(pattern);
+      track.currentLoad = track.baselineLoad;
+    }
+    const stage = getStage(mode, pattern, track.levelIndex);
+    const supportRule = APP.supportRules[state.supportMode] || APP.supportRules[''];
+    const energyRule = APP.energyRules[state.energy];
+    const repBottom = stage.repRange[0];
+    const repTop = Math.max(repBottom, stage.repRange[1] + supportRule.repTopDelta + energyRule.repTopDelta);
+    const sets = Math.max(2, stage.sets + supportRule.setDelta);
+    const restSeconds = Math.max(45, state.restSeconds + supportRule.restDelta + energyRule.restDelta);
+    const activeLoad = mode === 'gym' ? (track.currentLoad ?? track.baselineLoad) : null;
+    const loadLabel = mode === 'gym'
+      ? (activeLoad != null ? activeLoad + ' kg' : 'Set starting load')
+      : 'Bodyweight / support';
+    return {
+      pattern,
+      stageName: stage.name,
+      sets,
+      repBottom,
+      repTop,
+      restSeconds,
+      cue: stage.cue,
+      loadLabel,
+      eligibleSessionCount: track.eligibleSessionCount || 0,
+      winCount: trackWinCount(track),
+      levelIndex: track.levelIndex,
+      progressionLabel: mode === 'gym'
+        ? 'Progression opens after 6 eligible sessions and 2 strong sessions in the last 6.'
+        : 'Progression opens after 6 eligible sessions and 2 strong sessions in the last 6.',
+      setsData: Array.from({ length: sets }, () => ({ reps: repBottom, done: false }))
+    };
+  }
+
+  function buildWorkout(){
+    const patterns = currentTemplate();
+    return {
+      mode: state.mode,
+      supportMode: state.supportMode,
+      energy: state.energy,
+      createdAt: todayKey(),
+      exercises: patterns.map(pattern => deriveExercise(state.mode, pattern))
+    };
+  }
+
+  function ensureWorkout(){
+    if(!state.currentWorkout || state.currentWorkout.createdAt !== todayKey() || state.currentWorkout.mode !== state.mode || state.currentWorkout.supportMode !== state.supportMode || state.currentWorkout.energy !== state.energy){
+      state.currentWorkout = buildWorkout();
+    }
+    return state.currentWorkout;
+  }
+
+  function clone(obj){
+    return JSON.parse(JSON.stringify(obj));
+  }
+
+
+  function escapeHtml(value){
+    return String(value ?? '').replace(/[&<>"']/g, m => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[m]));
+  }
+
+  function showToast(title, copy){
+    els.toastTitle.textContent = title;
+    els.toastCopy.textContent = copy;
+    els.toast.classList.add('show');
+    clearTimeout(window.__heartyToastTimer);
+    window.__heartyToastTimer = setTimeout(() => els.toast.classList.remove('show'), 2600);
+  }
+
+
+  function hidePostSessionPanel(){
+    if(!els.postSessionPanel) return;
+    els.postSessionPanel.style.display = 'none';
+    els.postSessionMeta.innerHTML = '';
+  }
+
+  function showPostSessionPanel(title, copy, tags){
+    if(!els.postSessionPanel) return;
+    els.postSessionTitle.textContent = title;
+    els.postSessionCopy.textContent = copy;
+    els.postSessionMeta.innerHTML = (tags || []).map(tag => `<span>${tag}</span>`).join('');
+    els.postSessionPanel.style.display = 'block';
+  }
+
+  function updateWorkoutAdjustBanner(){
+    if(!els.workoutAdjustBanner) return;
+    const supportRule = APP.supportRules[state.supportMode] || APP.supportRules[''];
+    const card = document.getElementById('todayWorkoutCard');
+    if(state.supportMode){
+      card.classList.add('workout-card-support');
+      els.workoutAdjustBanner.style.display = 'block';
+      els.workoutAdjustBanner.innerHTML = '<strong>Support-adjusted session</strong><div style="margin-top:4px">Today’s workout has been intentionally softened so it still feels achievable and still counts.</div>';
+    } else {
+      card.classList.remove('workout-card-support');
+      els.workoutAdjustBanner.style.display = 'none';
+      els.workoutAdjustBanner.innerHTML = '';
+    }
+  }
+
+  function getNextPendingSet(workout){
+    for(let exIndex = 0; exIndex < workout.exercises.length; exIndex++){
+      const ex = workout.exercises[exIndex];
+      for(let setIndex = 0; setIndex < ex.setsData.length; setIndex++){
+        if(!ex.setsData[setIndex].done){
+          return { exIndex, setIndex };
+        }
+      }
+    }
+    return null;
+  }
+
+  function updateModalGuidance(workout){
+    if(!els.modalGuidance) return;
+    const next = getNextPendingSet(workout);
+    if(!next){
+      els.modalGuidance.textContent = 'All sets are marked done. Save the session to bank the win.';
+      return;
+    }
+    const ex = workout.exercises[next.exIndex];
+    const totalSets = workout.exercises.reduce((sum, item) => sum + item.setsData.length, 0);
+    const completedSets = workout.exercises.reduce((sum, item) => sum + item.setsData.filter(set => set.done).length, 0);
+    els.modalGuidance.textContent = `Next up: ${patternLabel(ex.pattern)} · Set ${next.setIndex + 1}. ${completedSets} of ${totalSets} sets logged so far.`;
+  }
+
+  function closeWorkoutModal(){
+    stopRestTimer();
+    if(els.modal.classList.contains('show') || els.modal.classList.contains('open')){
+      els.modal.classList.remove('show','open');
+    }
+    saveState();
+    if(previousWorkoutFocus) previousWorkoutFocus.focus();
+  }
+  let launchTimer = null;
+  function handleLaunchStart(event){
+    event.preventDefault();
+    const btn = els.openWorkoutBtn;
+    if(!btn || btn.classList.contains('is-arming')) return;
+    const lock = canTrainToday();
+    if(!lock.ok && lock.reason !== 'Already logged today'){
+      renderAll();
+      showToast('Rest first', lock.reason + '.');
+      return;
+    }
+    btn.classList.add('is-arming');
+    clearTimeout(launchTimer);
+    launchTimer = setTimeout(() => {
+      btn.classList.remove('is-arming');
+      openWorkoutModal();
+    }, 1200);
+  }
+
+
+
+  function niceDate(iso){
+    const d = new Date(iso);
+    return d.toLocaleDateString(undefined,{ year:'numeric', month:'short', day:'numeric' });
+  }
+
+  function generateDefaultCustomTitle(mode){
+    return mode === 'gym' ? 'Custom gym strength' : 'Custom home strength';
+  }
+
+  function containsBlockedCardioTerms(name){
+    const value = String(name || '').trim().toLowerCase();
+    return BLOCKED_CARDIO_TERMS.some(term => value.includes(term));
+  }
+
+  let restTimerInterval = null;
+  let restSecondsRemaining = 0;
+  function stopRestTimer(){
+    clearInterval(restTimerInterval);
+    restTimerInterval = null;
+    els.restTimerBox.classList.remove('show');
+    els.restTimerBox.style.display = 'none';
+  }
+  function startRestTimer(seconds){
+    restSecondsRemaining = seconds;
+    els.restTimerValue.textContent = String(restSecondsRemaining);
+    els.restTimerBox.style.display = 'grid';
+    requestAnimationFrame(() => els.restTimerBox.classList.add('show'));
+    clearInterval(restTimerInterval);
+    restTimerInterval = setInterval(() => {
+      restSecondsRemaining -= 1;
+      els.restTimerValue.textContent = String(Math.max(0, restSecondsRemaining));
+      if(restSecondsRemaining <= 0){
+        clearInterval(restTimerInterval);
+        restTimerInterval = null;
+        showToast('Rest complete', 'Start the next set when you are ready.');
+      }
+    }, 1000);
+  }
+
+  let previousWorkoutFocus = null;
+  let previousCustomFocus = null;
+
+  const els = {
+    supportCard: document.querySelector('.support-card'),
+    supportLed: document.getElementById('supportLed'),
+    supportStateText: document.getElementById('supportStateText'),
+    supportBanner: document.getElementById('supportBanner'),
+    recommendationCopy: document.getElementById('recommendationCopy'),
+    routeTitle: document.getElementById('routeTitle'),
+    routePhase: document.getElementById('routePhase'),
+    routeRest: document.getElementById('routeRest'),
+    strengthScoreValue: document.getElementById('strengthScoreValue'),
+    pageRoot: document.querySelector('.shell'),
+    supportButtons: Array.from(document.querySelectorAll('.support-chip[data-mode]')),
+    supportOff: document.getElementById('supportOff'),
+    openWorkoutBtn: document.getElementById('openWorkoutBtn'),
+    resetDemoBtn: document.getElementById('resetDemoBtn'),
+    finishWorkoutBtn: document.getElementById('finishWorkoutBtn'),
+    finishTitle: document.getElementById('finishTitle'),
+    finishCopy: document.getElementById('finishCopy'),
+    workoutList: document.getElementById('workoutList'),
+    heroTime: document.getElementById('heroTime'),
+    heroPlan: document.getElementById('heroPlan'),
+    heroWeek: document.getElementById('heroWeek'),
+    modifierMode: document.getElementById('modifierMode'),
+    modifierEnergy: document.getElementById('modifierEnergy'),
+    modifierSupport: document.getElementById('modifierSupport'),
+    trainingStatus: document.getElementById('trainingStatus'),
+    sessionBadge: document.getElementById('sessionBadge'),
+    weekSessionsValue: document.getElementById('weekSessionsValue'),
+    weekSessionsFill: document.getElementById('weekSessionsFill'),
+    weekSessionsNote: document.getElementById('weekSessionsNote'),
+    weekMinutesValue: document.getElementById('weekMinutesValue'),
+    weekMinutesFill: document.getElementById('weekMinutesFill'),
+    weekMinutesNote: document.getElementById('weekMinutesNote'),
+    weekLockValue: document.getElementById('weekLockValue'),
+    weekLockFill: document.getElementById('weekLockFill'),
+    weekLockNote: document.getElementById('weekLockNote'),
+    progressionSnapshot: document.getElementById('progressionSnapshot'),
+    recentActivityList: document.getElementById('recentActivityList'),
+    modal: document.getElementById('workoutModal'),
+    modalTitle: document.getElementById('modalTitle'),
+    modalSummaryTitle: document.getElementById('modalSummaryTitle'),
+    modalSummaryCopy: document.getElementById('modalSummaryCopy'),
+    modalScorePill: document.getElementById('modalScorePill'),
+    modalWorkoutBody: document.getElementById('modalWorkoutBody'),
+    modalLockBtn: document.getElementById('modalLockBtn'),
+    saveModalWorkoutBtn: document.getElementById('saveModalWorkoutBtn'),
+    restTimerBox: document.getElementById('restTimerBox'),
+    restTimerValue: document.getElementById('restTimerValue'),
+    weeklyDots: document.getElementById('weeklyDots'),
+    openQuickLogBtn: document.getElementById('openQuickLogBtn'),
+    openSimpleBuildBtn: document.getElementById('openSimpleBuildBtn'),
+    customWorkoutModal: document.getElementById('customWorkoutModal'),
+    closeCustomWorkoutModalBtn: document.getElementById('closeCustomWorkoutModalBtn'),
+    cancelCustomWorkoutBtn: document.getElementById('cancelCustomWorkoutBtn'),
+    saveCustomWorkoutBtn: document.getElementById('saveCustomWorkoutBtn'),
+    customWorkoutTitle: document.getElementById('customWorkoutTitle'),
+    customWorkoutRows: document.getElementById('customWorkoutRows'),
+    addCustomExerciseBtn: document.getElementById('addCustomExerciseBtn'),
+    customWorkoutNote: document.getElementById('customWorkoutNote'),
+    customWorkoutError: document.getElementById('customWorkoutError'),
+    customWorkoutModeGroup: document.getElementById('customWorkoutModeGroup'),
+    customDurationGroup: document.getElementById('customDurationGroup'),
+    toast: document.getElementById('toast'),
+    toastTitle: document.getElementById('toastTitle'),
+    toastCopy: document.getElementById('toastCopy'),
+    workoutAdjustBanner: document.getElementById('workoutAdjustBanner'),
+    postSessionPanel: document.getElementById('postSessionPanel'),
+    postSessionTitle: document.getElementById('postSessionTitle'),
+    postSessionCopy: document.getElementById('postSessionCopy'),
+    postSessionMeta: document.getElementById('postSessionMeta'),
+    modalGuidance: document.getElementById('modalGuidance'),
+    closeWorkoutBtn: document.getElementById('closeWorkoutBtn'),
+    modeButtons: Array.from(document.querySelectorAll('#modeSwitch .mode-btn')),
+    energyButtons: Array.from(document.querySelectorAll('#energyPills .ready-pill')),
+    restButtons: Array.from(document.querySelectorAll('#restSwitch .rest-btn'))
+  };
+
+  function phaseLabel(track){
+    if((track.eligibleSessionCount || 0) < 3) return 'Tolerance phase';
+    if((track.eligibleSessionCount || 0) < 6) return 'Stability build';
+    return 'Strength base';
+  }
+
+  function updateSupportStateUI(){
+    const mode = state.supportMode || '';
+    const active = Boolean(mode);
+    const supportRule = APP.supportRules[mode] || APP.supportRules[''];
+    els.supportButtons.forEach(b => b.classList.toggle('active', b.dataset.mode === mode));
+    els.supportLed.classList.toggle('active', active);
+    els.pageRoot.classList.toggle('support-active-theme', active);
+    if(els.supportCard) els.supportCard.classList.toggle('support-active', active);
+    els.supportOff.classList.toggle('is-off', !active);
+    if(active){
+      els.supportStateText.textContent = 'Support active';
+      if(els.supportBanner){
+        els.supportBanner.innerHTML = '<strong>' + supportRule.label + '</strong><p>' + (mode === 'Exhaustion'
+          ? "Today's movement target has been softened to support recovery. Meals and expectations shift to a lighter support state."
+          : 'Program adjusted for a lighter day. Meals, walking, and expectations shift to a more tolerable support state.') + '</p>';
+      }
+    } else {
+      els.supportStateText.textContent = 'Support inactive';
+      if(els.supportBanner) els.supportBanner.innerHTML = '<strong>Pick a support mode if you need it</strong><p>We will lighten today\'s training to make movement feel easier.</p>';
+    }
+  }
+
+  function patternLabel(pattern){
+    return {
+      squat: 'Squat pattern',
+      push: 'Upper push',
+      pull: 'Pull pattern',
+      hinge: 'Posterior chain',
+      step: 'Step / single-leg'
+    }[pattern] || pattern;
+  }
+
+
+  function renderWorkoutList(){
+    const workout = ensureWorkout();
+    const completePatterns = new Set((state.currentWorkout && state.currentWorkout.completedPlan) || []);
+    els.workoutList.innerHTML = workout.exercises.map((ex) => {
+      const completeToday = state.modalSavedToday && completePatterns.has(ex.pattern);
+      return `
+        <article class="task-row ${completeToday ? 'done' : ''}" data-pattern="${ex.pattern}" data-complete="${completeToday}">
+          <div class="task-check">
+            <svg viewBox="0 0 24 24"><path d="M5 12l5 5 9-9"></path></svg>
+          </div>
+          <div class="task-main">
+            <div class="task-kicker">${patternLabel(ex.pattern)}</div>
+            <div class="task-name">${ex.stageName}${state.mode === 'gym' ? ' · ' + ex.loadLabel : ''}</div>
+            <div class="task-desc">${ex.sets} × ${ex.repBottom}–${ex.repTop} reps</div>
+          </div>
+          <div class="task-actions">
+            <button class="task-btn open-modal-btn">Open</button>
+          </div>
+        </article>
+      `;
+    }).join('');
+
+    document.querySelectorAll('.open-modal-btn').forEach(btn => {
+      btn.addEventListener('click', openWorkoutModal);
+    });
+  }
+
+
+  function renderProgressionSnapshot(){
+    const activeMode = state.mode;
+    const patterns = Object.keys(state.tracks[activeMode]);
+    if(!els.progressionSnapshot) return;
+    els.progressionSnapshot.innerHTML = patterns.map(pattern => {
+      const track = getTrackForMode(pattern, activeMode);
+      const stage = getStage(activeMode, pattern, track.levelIndex);
+      const ready = canAdvance(track);
+      const progressPct = patternProgressPercent(track);
+      const todayModeLabel = activeMode === 'gym' ? 'Gym session' : 'Home session';
+      const winCount = trackWinCount(track);
+      const loadText = activeMode === 'gym' && track.currentLoad != null ? ' · ' + track.currentLoad + ' kg' : '';
+      return `
+        <div class="metric-row">
+          <div class="metric-top"><div class="metric-label">${patternLabel(pattern)}</div><div class="metric-value">${winCount} / 2</div></div>
+          <div class="metric-note">${todayModeLabel} level ${track.levelIndex + 1} · ${stage.name}${loadText}</div>
+          <div class="bar"><div class="fill ${ready ? 'green' : 'blue'}" style="width:${progressPct}%"></div></div>
+          <div class="metric-note">${patternProgressMessage(track)}</div>
+        </div>
+      `;
+    }).join('') + '<p class="card-sub" style="margin-top:10px">Step and balance work appears less often and usually progresses more slowly.</p>';
+  }
+
+  function renderRecentActivity(){
+    const items = state.recentActivity.slice(0,4);
+    if(!items.length){
+      if(!els.recentActivityList) return;
+      els.recentActivityList.innerHTML = '<div class="history-item"><div><b>No strength session logged yet</b><span>Once you save a workout it will show up here.</span></div><div class="history-right">—</div></div>';
+      return;
+    }
+    if(!els.recentActivityList) return;
+    els.recentActivityList.innerHTML = items.map(item => {
+      const badge = item.type === 'custom_workout' ? '<span class="mini-pill custom-badge">Custom</span>' : '';
+      const heading = item.type === 'custom_workout'
+        ? `${escapeHtml(item.title)}`
+        : `${item.date} · ${item.mode === 'home' ? 'Home' : 'Gym'} session`;
+      const sub = item.type === 'custom_workout'
+        ? `${item.meta}`
+        : `${item.summary}`;
+      const right = item.type === 'custom_workout'
+        ? item.date
+        : `${item.minutes} min`;
+      return `<div class="history-item"><div><b>${heading}</b><span>${sub}</span>${badge}</div><div class="history-right">${right}</div></div>`;
+    }).join('');
+  }
+
+  function updateWeeklyCards(){
+    const sessions = getWeekSessions();
+    const sessionCount = sessions.length;
+    if(!els.weekSessionsValue) return;
+    if(els.weeklyDots){
+      [...els.weeklyDots.children].forEach((dot, idx) => dot.classList.toggle('active', idx < sessionCount));
+    }
+    const lock = canTrainToday();
+    const summary = sessionCount + ' of 3 sessions completed';
+    let note = 'You can bank up to three strength sessions this week.';
+    if(lock.reason === 'Already logged today'){
+      note = 'Today is already logged. Come back for your next session after a rest day.';
+    } else if(lock.reason === 'No consecutive strength days'){
+      note = 'You trained yesterday. Rest today and come back tomorrow.';
+    } else if(lock.reason === 'Weekly strength complete' || sessionCount >= 3){
+      note = 'Weekly strength complete. The week is locked.';
+    } else if(sessionCount > 0){
+      note = 'Build toward three sessions without training on consecutive days.';
+    }
+    els.weekSessionsValue.textContent = summary;
+    els.weekSessionsNote.textContent = note;
+
+    if(els.weekSessionsFill) els.weekSessionsFill.style.width = Math.min(100, (sessionCount / 3) * 100) + '%';
+    if(els.weekMinutesValue) els.weekMinutesValue.textContent = state.minutesThisWeek + ' min';
+    if(els.weekMinutesFill) els.weekMinutesFill.style.width = Math.min(100, (state.minutesThisWeek / 66) * 100) + '%';
+    if(els.weekMinutesNote) els.weekMinutesNote.textContent = state.minutesThisWeek ? 'Short, repeatable work beats heroic sessions here.' : 'Minutes will build as sessions are logged.';
+    const lockedNow = !lock.ok && lock.reason !== 'Already logged today';
+    if(els.weekLockValue) els.weekLockValue.textContent = lockedNow ? 'Locked' : (lock.reason === 'Already logged today' ? 'Done today' : 'Open');
+    if(els.weekLockFill) els.weekLockFill.style.width = lockedNow ? '100%' : (lock.reason === 'Already logged today' ? '100%' : (sessionCount / 3 * 100) + '%');
+    if(els.weekLockNote) els.weekLockNote.textContent = lock.reason === 'Already logged today'
+      ? 'Today already has a logged strength session.'
+      : lock.reason === 'No consecutive strength days'
+      ? 'You trained yesterday. Rest today and come back tomorrow.'
+      : lock.reason === 'Weekly strength complete'
+      ? 'Three strength sessions already banked this week.'
+      : 'No consecutive days and a hard cap at three sessions.';
+  }
+
+  
+  function getTodayModeLabel(){
+    return state.mode === 'gym' ? 'Gym' : 'Home';
+  }
+
+  function formatSessionType(type){
+    if(type === 'full') return 'Full session';
+    if(type === 'reduced') return 'Reduced session';
+    if(type === 'recovery') return 'Recovery session';
+    return 'Rest day';
+  }
+
+  function getSessionBadgeText(){
+    const lock = canTrainToday();
+    if(lock.reason === 'Already logged today') return 'Logged today';
+    if(lock.reason === 'No consecutive strength days') return 'Recovery day';
+    if(lock.reason === 'Weekly strength complete') return 'Week complete';
+    return state.supportMode ? 'Support session open' : 'Session open';
+  }
+
+function updateHero(){
+    const workout = ensureWorkout();
+    const lock = canTrainToday();
+    const sessions = getWeekSessions();
+    const avgTime = state.mode === 'gym' ? 22 : 18;
+    const donePlan = (state.currentWorkout && state.currentWorkout.completedPlan) ? state.currentWorkout.completedPlan.length : 0;
+    const completionPct = workout.exercises.length ? Math.round((donePlan / workout.exercises.length) * 100) : 0;
+    const ring = document.querySelector('.completion-ring');
+    if(ring){
+      ring.style.setProperty('--deg', (completionPct * 3.6) + 'deg');
+      ring.classList.remove('bump');
+      void ring.offsetWidth;
+      ring.classList.add('bump');
+      const ringText = ring.querySelector('span');
+      if(ringText) ringText.innerHTML = completionPct + '%<br>done';
+    }
+    updateWorkoutAdjustBanner();
+    const dayPill = document.getElementById('heroDayPill');
+    if(dayPill){
+      const baseDate = state.firstSessionDate || state.startDate || todayKey();
+      const diffDays = Math.max(0, Math.floor((new Date(todayKey()) - new Date(baseDate)) / 86400000)) + 1;
+      dayPill.textContent = 'Day ' + diffDays;
+    }
+    if(els.heroTime) els.heroTime.textContent = avgTime + ' min';
+    if(els.heroPlan) els.heroPlan.textContent = workout.exercises.length + ' planned';
+    if(els.heroWeek) els.heroWeek.textContent = sessions.length + ' / 3';
+    els.modifierMode.textContent = getTodayModeLabel() + ' session';
+    els.modifierEnergy.textContent = APP.energyRules[state.energy].label;
+    els.modifierSupport.textContent = (APP.supportRules[state.supportMode] || APP.supportRules['']).label;
+    if(els.routeRest) els.routeRest.textContent = '90 sec';
+    els.strengthScoreValue.textContent = state.strengthScore;
+    const primaryTrack = workout.exercises.length ? getTrack(workout.exercises[0].pattern) : null;
+    if(els.routePhase) els.routePhase.textContent = primaryTrack ? (state.supportMode ? 'Support-adjusted work' : 'Steady progression') : 'Steady progression';
+    if(els.recommendationCopy) els.recommendationCopy.textContent = APP.supportRules[state.supportMode].route;
+    els.trainingStatus.textContent = lock.ok
+      ? 'Three strength sessions per week. No back to back days. Stop at three.'
+      : lock.reason === 'Already logged today'
+      ? 'Today already has a logged strength session. You can review the progression, but not bank another one.'
+      : lock.reason === 'No consecutive strength days'
+      ? 'Yesterday already had strength work. Today is blocked to protect recovery.'
+      : 'Weekly is locked after three strength sessions.';
+    if(els.openWorkoutBtn){
+      const btnLabel = els.openWorkoutBtn.querySelector('span');
+      if(btnLabel){
+        btnLabel.textContent = lock.ok ? 'Start' : 'Review';
+      } else {
+        els.openWorkoutBtn.textContent = lock.ok ? 'Start' : 'Review';
+      }
+    }
+    els.trainingStatus.classList.toggle('locked', !lock.ok);
+    els.sessionBadge.textContent = getSessionBadgeText();
+    els.finishTitle.textContent = lock.reason === 'Already logged today' ? 'Workout logged' : 'Log workout';
+    els.finishCopy.textContent = lock.reason === 'Already logged today'
+      ? 'Nice consistency. Today already counts.'
+      : 'When the final set is done, log the session and move on.';
+  }
+
+  function renderModal(){
+    const lock = canTrainToday();
+    const workout = state.modalWorkout || clone(ensureWorkout());
+    const nextPending = getNextPendingSet(workout);
+    els.modalTitle.textContent = 'Today\'s workout';
+    els.modalSummaryTitle.textContent = lock.ok ? 'Move through the checklist.' : lock.reason;
+    els.modalSummaryCopy.textContent = state.supportMode
+      ? 'Support is on. Keep the work lighter today and let the session count.'
+      : 'Complete the sets below. Rest starts automatically after each one.';
+    els.modalScorePill.textContent = 'Session ready';
+    updateModalGuidance(workout);
+
+    els.modalWorkoutBody.innerHTML = workout.exercises.map((ex, exIndex) => {
+      const isActiveExercise = nextPending && nextPending.exIndex === exIndex;
+      return `
+        <div class="sheet-exercise ${isActiveExercise ? 'active' : ''}" data-ex-index="${exIndex}">
+          <div class="sheet-ex-head">
+            <div>
+              <div class="sheet-ex-title">${ex.stageName}${state.mode === 'gym' ? ' · ' + ex.loadLabel : ''}</div>
+              <div class="sheet-ex-sub">${patternLabel(ex.pattern)} · ${ex.sets} sets of ${ex.repBottom}–${ex.repTop} reps</div>
+            </div>
+          </div>
+          ${ex.setsData.map((set, setIndex) => `
+            <div class="set-row ${set.done ? 'done' : ''}" data-set-index="${setIndex}">
+              <div class="set-left">
+                <b>Set ${setIndex + 1}</b>
+                <span>${set.done ? 'Done' : 'Rest ' + ex.restSeconds + ' sec after this set'}</span>
+              </div>
+              <div class="set-right">
+                <button class="ghost-pill set-done-btn ${set.done ? 'active' : ''}" data-complete-set="${exIndex}-${setIndex}" type="button">${set.done ? 'Done' : 'Mark done'}</button>
+              </div>
+            </div>
+          `).join('')}
+        </div>
+      `;
+    }).join('');
+
+    els.modalLockBtn.textContent = lock.ok ? 'Rules active' : lock.reason;
+    els.saveModalWorkoutBtn.disabled = !lock.ok;
+    els.modalLockBtn.disabled = true;
+
+    els.modalWorkoutBody.querySelectorAll('[data-complete-set]').forEach(btn => btn.addEventListener('click', () => completeSet(btn.dataset.completeSet)));
+  }
+
+  function completeSet(key){
+    const [exIndex, setIndex] = key.split('-').map(Number);
+    const ex = state.modalWorkout.exercises[exIndex];
+    const set = ex.setsData[setIndex];
+    set.reps = ex.repTop;
+    set.done = true;
+    renderModal();
+    startRestTimer(ex.restSeconds);
+    window.setTimeout(() => {
+      const nextButton = els.modalWorkoutBody.querySelector('[data-complete-set]:not(.active)');
+      if(nextButton) nextButton.focus();
+    }, 60);
+  }
+
+  function adjustRep(exIndex, setIndex, delta){
+    const ex = state.modalWorkout.exercises[Number(exIndex)];
+    const set = ex.setsData[Number(setIndex)];
+    set.reps = Math.max(ex.repBottom - 2, Math.min(ex.repTop + 3, set.reps + delta));
+    document.getElementById('rep-' + exIndex + '-' + setIndex).textContent = set.reps;
+    els.modalScorePill.textContent = 'Strength score +' + estimateScore(state.modalWorkout);
+  }
+
+  function estimateScore(workout){
+    let score = 10;
+    workout.exercises.forEach(ex => {
+      const topHits = ex.setsData.filter(set => set.reps >= ex.repTop).length;
+      score += topHits * 2;
+    });
+    if(state.supportMode) score += 4;
+    return score;
+  }
+
+  function promoteTrack(mode, pattern){
+    const track = getTrackForMode(pattern, mode);
+    const ladder = APP.ladders[mode][pattern];
+    if(track.levelIndex < ladder.length - 1){
+      track.levelIndex += 1;
+    }
+    track.eligibleSessionCount = 0;
+    track.recentEligibleWins = [];
+    track.stuckCount = 0;
+    track.lastProgressionDate = todayKey();
+    track.lastOutcome = 'advance';
+    if(mode === 'gym' && track.currentLoad != null){
+      track.currentLoad = nextGymLoad(track.currentLoad, pattern);
+    }
+  }
+
+  function saveWorkoutSession(){
+    const lock = canTrainToday();
+    if(!lock.ok) return;
+
+    const workout = state.modalWorkout || clone(ensureWorkout());
+    const workoutMode = workout.mode || state.mode;
+    const supportRule = APP.supportRules[state.supportMode] || APP.supportRules[''];
+    let gainedScore = 10;
+    let advancedCount = 0;
+    let topRangeWins = 0;
+    const completedPatterns = [];
+    const regressionOffers = [];
+    const effortPrompt = window.prompt("How did today's reps feel? Enter: smooth, controlled, or too hard.", 'controlled');
+    const tooHard = String(effortPrompt || 'controlled').trim().toLowerCase() === 'too hard';
+
+    workout.exercises.forEach(ex => {
+      const track = getTrackForMode(ex.pattern, workoutMode);
+      const allAtTop = !tooHard && ex.setsData.every(set => set.reps >= ex.repTop);
+      completedPatterns.push(ex.pattern);
+
+      if(!supportRule.successEligible){
+        track.protectCount = (track.protectCount || 0) + 1;
+        track.lastOutcome = 'protect';
+        return;
+      }
+
+      track.eligibleSessionCount += 1;
+      track.recentEligibleWins = track.recentEligibleWins || [];
+      track.recentEligibleWins.push(allAtTop);
+      if(track.recentEligibleWins.length > 6) track.recentEligibleWins.shift();
+
+      if(allAtTop){
+        track.stuckCount = 0;
+        topRangeWins += 1;
+        gainedScore += 5;
+      } else {
+        track.stuckCount = (track.stuckCount || 0) + 1;
+      }
+
+      track.lastOutcome = 'hold';
+
+      if(canAdvance(track)){
+        promoteTrack(workoutMode, ex.pattern);
+        advancedCount += 1;
+        gainedScore += 25;
+      } else if(shouldOfferRegression(track)){
+        track.lastOutcome = 'regress_offer';
+        regressionOffers.push({ pattern: ex.pattern, track });
+      }
+    });
+
+    state.sessions.push(todayKey());
+    state.minutesThisWeek += workoutMode === 'gym' ? 22 : 18;
+    state.strengthScore += gainedScore;
+    state.modalSavedToday = true;
+
+    state.recentActivity.unshift({
+      date: todayKey(),
+      mode: workoutMode,
+      minutes: workoutMode === 'gym' ? 22 : 18,
+      summary: workout.exercises.map(ex => ex.stageName).join(', ')
+    });
+    state.recentActivity = state.recentActivity.slice(0, 8);
+
+    state.currentWorkout = buildWorkout();
+    state.currentWorkout.completedPlan = completedPatterns;
+    state.modalWorkout = clone(state.currentWorkout);
+    saveState();
+    renderAll();
+    els.modal.classList.remove('show','open');
+
+    if(regressionOffers.length){
+      const first = regressionOffers[0];
+      const accepted = window.confirm('This level may be a bit too demanding right now. Step back for a stronger base?');
+      if(accepted){
+        regressTrack(first.track);
+        saveState();
+        renderAll();
+        showToast('Plan adjusted', 'A lighter step will help you rebuild with confidence.');
+        return;
+      } else {
+        first.track.stuckCount = 0;
+        saveState();
+      }
+    }
+
+    if(advancedCount > 0){
+      showToast('Strength level unlocked', `${advancedCount} pattern${advancedCount === 1 ? '' : 's'} advanced today.`);
+    } else if(topRangeWins > 0){
+      showToast('Session logged', `${topRangeWins} pattern${topRangeWins === 1 ? '' : 's'} counted as strong today.`);
+    } else if(tooHard){
+      showToast('Strength session complete', 'Saved as a controlled consistency day.');
+    } else {
+      showToast('Strength session complete', 'This counts toward your shared weekly strength goal.');
+    }
+  }
+
+  function openWorkoutModal(){
+    previousWorkoutFocus = document.activeElement;
+    hidePostSessionPanel();
+    if(!state.modalWorkout || !state.currentWorkout || state.modalWorkout.createdAt !== ensureWorkout().createdAt){
+      state.modalWorkout = clone(ensureWorkout());
+    }
+    renderModal();
+    els.modal.classList.add('show','open');
+    const first = els.modal.querySelector('button');
+    if(first) first.focus();
+  }
+
+
+  function renderCustomWorkoutModeButtons(){
+    [...els.customWorkoutModeGroup.querySelectorAll('[data-mode]')].forEach(btn => {
+      const active = btn.dataset.mode === state.customWorkoutDraft.mode;
+      btn.classList.toggle('active', active);
+      btn.setAttribute('aria-pressed', active ? 'true' : 'false');
+    });
+  }
+
+  function renderCustomDurationButtons(){
+    [...els.customDurationGroup.querySelectorAll('[data-duration]')].forEach(btn => {
+      const active = Number(btn.dataset.duration) === Number(state.customWorkoutDraft.durationMin);
+      btn.classList.toggle('active', active);
+      btn.setAttribute('aria-pressed', active ? 'true' : 'false');
+    });
+  }
+
+  function renderCustomWorkoutRows(){
+    const rows = state.customWorkoutDraft.exercises;
+    els.customWorkoutRows.innerHTML = rows.map((row, index) => `
+      <div class="custom-row">
+        <div class="custom-row-top">
+          <div class="task-kicker">Exercise ${index + 1}</div>
+          <button class="remove-row-btn" type="button" data-remove-row="${index}" ${rows.length <= 2 ? 'disabled' : ''}>Remove</button>
+        </div>
+        <div class="custom-row-grid">
+          <input type="text" class="text-input" placeholder="Leg press" value="${escapeHtml(row.name || '')}" data-row-name="${index}" aria-label="Exercise name ${index + 1}">
+          <div class="stepper">
+            <button type="button" class="small-circle" data-stepper="sets-minus" data-index="${index}" aria-label="Decrease sets for exercise ${index + 1}">−</button>
+            <div class="stepper-value">${row.sets}</div>
+            <button type="button" class="small-circle" data-stepper="sets-plus" data-index="${index}" aria-label="Increase sets for exercise ${index + 1}">+</button>
+          </div>
+          <div class="stepper">
+            <button type="button" class="small-circle" data-stepper="reps-minus" data-index="${index}" aria-label="Decrease reps for exercise ${index + 1}">−</button>
+            <div class="stepper-value">${row.reps}</div>
+            <button type="button" class="small-circle" data-stepper="reps-plus" data-index="${index}" aria-label="Increase reps for exercise ${index + 1}">+</button>
+          </div>
+        </div>
+      </div>
+    `).join('');
+    els.addCustomExerciseBtn.disabled = rows.length >= 5;
+    els.addCustomExerciseBtn.textContent = rows.length >= 5 ? 'Maximum reached' : 'Add exercise';
+  }
+
+  function hideCustomWorkoutError(){
+    els.customWorkoutError.style.display = 'none';
+    els.customWorkoutError.textContent = '';
+  }
+
+  function showCustomWorkoutError(message){
+    els.customWorkoutError.style.display = 'block';
+    els.customWorkoutError.textContent = message;
+  }
+
+  function renderCustomWorkoutDraft(){
+    els.customWorkoutTitle.value = state.customWorkoutDraft.title || '';
+    els.customWorkoutNote.value = state.customWorkoutDraft.note || '';
+    renderCustomWorkoutModeButtons();
+    renderCustomDurationButtons();
+    renderCustomWorkoutRows();
+  }
+
+  function openCustomWorkoutModal(type){
+    const lock = canTrainToday();
+    previousCustomFocus = document.activeElement;
+    if(!lock.ok){
+      showCustomWorkoutError(lock.reason === 'Weekly strength complete' ? 'Weekly strength already complete. Custom workouts still follow your Hearty strength plan.' : 'Rest day required today. Custom workouts still follow your Hearty strength plan.');
+    } else {
+      hideCustomWorkoutError();
+    }
+    state.customWorkoutDraft = state.customWorkoutDraft || baseState().customWorkoutDraft;
+    state.customWorkoutDraft.type = type || 'quick';
+    state.customWorkoutDraft.mode = state.mode || state.customWorkoutDraft.mode || 'home';
+    renderCustomWorkoutDraft();
+    els.customWorkoutModal.classList.add('show');
+    const first = els.customWorkoutModal.querySelector('button, input, textarea');
+    if(first) first.focus();
+  }
+
+  function closeCustomWorkoutModal(){
+    saveState();
+    els.customWorkoutModal.classList.remove('show');
+    hideCustomWorkoutError();
+    if(previousCustomFocus) previousCustomFocus.focus();
+  }
+
+  function addCustomWorkoutRow(){
+    const rows = state.customWorkoutDraft.exercises;
+    if(rows.length >= 5) return;
+    rows.push({ name: '', sets: 3, reps: 10 });
+    renderCustomWorkoutRows();
+    saveState();
+  }
+
+  function removeCustomWorkoutRow(index){
+    const rows = state.customWorkoutDraft.exercises;
+    if(rows.length <= 2) return;
+    rows.splice(index, 1);
+    renderCustomWorkoutRows();
+    saveState();
+  }
+
+  function updateCustomWorkoutRow(index, field, value){
+    state.customWorkoutDraft.exercises[index][field] = value;
+    saveState();
+  }
+
+  function stepCustomWorkoutValue(index, field, delta){
+    const row = state.customWorkoutDraft.exercises[index];
+    const limits = { sets: { min: 1, max: 5 }, reps: { min: 5, max: 20 } };
+    row[field] = Math.max(limits[field].min, Math.min(limits[field].max, row[field] + delta));
+    renderCustomWorkoutRows();
+    saveState();
+  }
+
+  function validateCustomWorkout(){
+    const draft = state.customWorkoutDraft;
+    const errors = [];
+    if(!draft.mode) errors.push('Choose Home or Gym.');
+    if(!draft.durationMin) errors.push('Choose a workout duration.');
+    if(!draft.exercises || draft.exercises.length < 2) errors.push('Add at least 2 strength exercises.');
+    if(draft.exercises.length > 5) errors.push('Keep it to 5 exercises or fewer.');
+    draft.exercises.forEach((row, index) => {
+      const name = String(row.name || '').trim();
+      if(!name) errors.push(`Add a name for exercise ${index + 1}.`);
+      if(name && containsBlockedCardioTerms(name)) errors.push('Hearty Exercise is for short strength workouts only. Cardio is not logged here.');
+    });
+    return { valid: errors.length === 0, errors };
+  }
+
+  function addCustomWorkoutToHistory(workout){
+    state.recentActivity.unshift({
+      type: 'custom_workout',
+      date: niceDate(workout.date),
+      title: workout.title,
+      meta: `${workout.durationMin} min · ${workout.exercises.length} exercises`
+    });
+    state.recentActivity = state.recentActivity.slice(0, 10);
+  }
+
+  function saveCustomWorkout(){
+    const lock = canTrainToday();
+    if(!lock.ok){
+      showCustomWorkoutError(lock.reason === 'Weekly strength complete' ? 'Weekly strength already complete. Custom workouts still follow your Hearty strength plan.' : 'Rest day required today. Custom workouts still follow your Hearty strength plan.');
+      return;
+    }
+    const validation = validateCustomWorkout();
+    if(!validation.valid){
+      showCustomWorkoutError(validation.errors[0]);
+      return;
+    }
+    const draft = state.customWorkoutDraft;
+    const workout = {
+      id: 'cw_' + Date.now(),
+      date: todayKey(),
+      source: 'custom',
+      mode: draft.mode,
+      title: (draft.title || '').trim() || generateDefaultCustomTitle(draft.mode),
+      durationMin: Number(draft.durationMin),
+      exercises: draft.exercises.map(row => ({ name: String(row.name || '').trim(), sets: row.sets, reps: row.reps })),
+      countsForStrength: true,
+      countsForProgression: false,
+      note: (draft.note || '').trim()
+    };
+    state.customWorkouts.unshift(workout);
+    if(!state.sessions.includes(workout.date)) state.sessions.push(workout.date);
+    state.minutesThisWeek += workout.durationMin;
+    state.strengthScore += 11;
+    if(getWeekSessions().length === 3) state.strengthScore += 15;
+    addCustomWorkoutToHistory(workout);
+    state.customWorkoutDraft = baseState().customWorkoutDraft;
+    saveState();
+    closeCustomWorkoutModal();
+    renderAll();
+    showToast('Short strength session logged', 'It counts toward your weekly strength goal.');
+  }
+
+
+  function renderAll(){
+    updateSupportStateUI();
+    updateHero();
+    renderWorkoutList();
+    updateWeeklyCards();
+    renderProgressionSnapshot();
+    renderRecentActivity();
+    updateWorkoutAdjustBanner();
+
+    els.modeButtons.forEach(btn => { const active = btn.dataset.mode === state.mode; btn.classList.toggle('active', active); btn.setAttribute('aria-pressed', active ? 'true' : 'false'); });
+    els.energyButtons.forEach(btn => { const active = btn.dataset.energy === state.energy; btn.classList.toggle('active', active); btn.setAttribute('aria-pressed', active ? 'true' : 'false'); });
+    if(els.restButtons && els.restButtons.length){ els.restButtons.forEach(btn => { const active = Number(btn.dataset.rest) === Number(state.restSeconds); btn.classList.toggle('active', active); btn.setAttribute('aria-pressed', active ? 'true' : 'false'); }); }
+
+    if(els.progressionSnapshot) { const card = els.progressionSnapshot.closest('.card'); if(card) card.style.display = 'none'; }
+    if(els.recentActivityList) { const card = els.recentActivityList.closest('.card'); if(card) card.style.display = 'none'; }
+    if(document.getElementById('exerciseBadgeCard')) document.getElementById('exerciseBadgeCard').style.display = '';
+    if(els.heroTime) els.heroTime.textContent = ensureWorkout().exercises.length + ' moves';
+    if(els.heroExercises) els.heroExercises.textContent = (state.mode === 'home' ? 'Home' : 'Gym') + ' plan';
+    if(els.heroWeek) els.heroWeek.textContent = canTrainToday().ok ? 'Session open' : canTrainToday().reason;
+    if(els.finishTitle) els.finishTitle.textContent = state.modalSavedToday ? 'Workout logged' : 'Finish workout';
+    if(els.finishCopy) els.finishCopy.textContent = state.modalSavedToday ? 'Today already counts. You are done here.' : 'Log each movement below, then finish the session.';
+  }
+
+  els.supportButtons.forEach(btn => {
+    btn.addEventListener('click', () => {
+      state.supportMode = btn.classList.contains('active') ? '' : btn.dataset.mode;
+      state.currentWorkout = null;
+      saveState();
+      renderAll();
+    });
+  });
+  els.supportOff.addEventListener('click', () => {
+    state.supportMode = '';
+    state.currentWorkout = null;
+    saveState();
+    renderAll();
+  });
+
+  els.modeButtons.forEach(btn => {
+    btn.addEventListener('click', () => {
+      state.mode = btn.dataset.mode;
+      state.currentWorkout = null;
+      saveState();
+      renderAll();
+    });
+  });
+
+  els.energyButtons.forEach(btn => {
+    btn.addEventListener('click', () => {
+      state.energy = btn.dataset.energy;
+      state.currentWorkout = null;
+      saveState();
+      renderAll();
+    });
+  });
+
+  if(els.restButtons && els.restButtons.length){
+    els.restButtons.forEach(btn => {
+      btn.addEventListener('click', () => {
+        state.restSeconds = Number(btn.dataset.rest);
+        state.currentWorkout = null;
+        saveState();
+        renderAll();
+      });
+    });
+  }
+
+  els.openWorkoutBtn?.addEventListener('click', handleLaunchStart);
+  els.closeWorkoutBtn.addEventListener('click', closeWorkoutModal);
+  els.modal.addEventListener('click', e => { if(e.target === els.modal) closeWorkoutModal(); });
+  els.saveModalWorkoutBtn.addEventListener('click', saveWorkoutSession);
+  els.finishWorkoutBtn.addEventListener('click', () => {
+    if(canTrainToday().ok){
+      openWorkoutModal();
+    } else {
+      renderAll();
+    }
+  });
+
+  els.openQuickLogBtn?.addEventListener('click', () => openCustomWorkoutModal('quick'));
+  els.openSimpleBuildBtn?.addEventListener('click', () => openCustomWorkoutModal('simple'));
+  els.closeCustomWorkoutModalBtn.addEventListener('click', closeCustomWorkoutModal);
+  els.cancelCustomWorkoutBtn.addEventListener('click', closeCustomWorkoutModal);
+  els.saveCustomWorkoutBtn.addEventListener('click', saveCustomWorkout);
+  els.addCustomExerciseBtn.addEventListener('click', addCustomWorkoutRow);
+  els.customWorkoutTitle.addEventListener('input', e => { state.customWorkoutDraft.title = e.target.value; saveState(); });
+  els.customWorkoutNote.addEventListener('input', e => { state.customWorkoutDraft.note = e.target.value; saveState(); });
+  els.customWorkoutModeGroup.addEventListener('click', e => {
+    const btn = e.target.closest('[data-mode]');
+    if(!btn) return;
+    state.customWorkoutDraft.mode = btn.dataset.mode;
+    renderCustomWorkoutModeButtons();
+    saveState();
+  });
+  els.customDurationGroup.addEventListener('click', e => {
+    const btn = e.target.closest('[data-duration]');
+    if(!btn) return;
+    state.customWorkoutDraft.durationMin = Number(btn.dataset.duration);
+    renderCustomDurationButtons();
+    saveState();
+  });
+  els.customWorkoutRows.addEventListener('input', e => {
+    const input = e.target.closest('[data-row-name]');
+    if(!input) return;
+    updateCustomWorkoutRow(Number(input.dataset.rowName), 'name', input.value);
+  });
+  els.customWorkoutRows.addEventListener('click', e => {
+    const removeBtn = e.target.closest('[data-remove-row]');
+    if(removeBtn){
+      removeCustomWorkoutRow(Number(removeBtn.dataset.removeRow));
+      return;
+    }
+    const stepperBtn = e.target.closest('[data-stepper]');
+    if(!stepperBtn) return;
+    const index = Number(stepperBtn.dataset.index);
+    const type = stepperBtn.dataset.stepper;
+    if(type === 'sets-minus') stepCustomWorkoutValue(index, 'sets', -1);
+    if(type === 'sets-plus') stepCustomWorkoutValue(index, 'sets', 1);
+    if(type === 'reps-minus') stepCustomWorkoutValue(index, 'reps', -1);
+    if(type === 'reps-plus') stepCustomWorkoutValue(index, 'reps', 1);
+  });
+  els.customWorkoutModal.addEventListener('click', e => {
+    if(e.target === els.customWorkoutModal) closeCustomWorkoutModal();
+  });
+  document.addEventListener('keydown', e => {
+    if(e.key === 'Escape'){
+      if(els.modal.classList.contains('show')) closeWorkoutModal();
+      if(els.customWorkoutModal.classList.contains('show')) closeCustomWorkoutModal();
+    }
+  });
+
+
+    if(els.resetDemoBtn){ els.resetDemoBtn.addEventListener('click', () => {
+    const confirmed = window.confirm('Reset the Hearty exercise demo and clear saved progress on this device?');
+    if(!confirmed) return;
+    localStorage.removeItem(STORAGE_KEY);
+    state = baseState();
+    saveState();
+    renderAll();
+  }); }
+
+  saveState();
+  renderAll();
+})();

@@ -1,0 +1,1 @@
+(function(){var support=localStorage.getItem('heartySupportMode');if(support){document.documentElement.classList.add('support-active-theme');}})();

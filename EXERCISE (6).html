@@ -1,0 +1,14 @@
+/* Hearty core review pack */
+*{box-sizing:border-box;-webkit-tap-highlight-color:transparent;}
+html,body{max-width:100%;overflow-x:hidden;}
+:root{--header-height:88px;--nav-height:76px;}
+html.support-active-theme{
+  --bg-1:#fdf2f2 !important;
+  --bg-2:#fffafa !important;
+  --accent:#e05252 !important;
+}
+.shell{padding-top:max(20px, env(safe-area-inset-top));padding-bottom:max(32px, env(safe-area-inset-bottom));}
+.topbar{padding-top:0;}
+.icon-btn{appearance:none;border:1px solid rgba(143,163,184,.24);background:rgba(255,255,255,.82);color:#405166;width:40px;height:40px;border-radius:14px;display:grid;place-items:center;box-shadow:0 8px 22px rgba(14,31,53,.06);cursor:pointer;margin-right:2px;}
+.icon-btn svg{width:20px;height:20px;stroke:currentColor;stroke-width:1.9;fill:none;stroke-linecap:round;stroke-linejoin:round;}
+.bottom-nav{padding-bottom:max(8px, env(safe-area-inset-bottom));}
